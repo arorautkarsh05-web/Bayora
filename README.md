@@ -5,6 +5,9 @@
 ---
 
 ## 1. Executive Summary & Core Mission
+<img width="1890" height="902" alt="image" src="https://github.com/user-attachments/assets/d9993fda-61f8-4a3e-8019-ef9900e9b906" />
+
+
 
 Adversarial model testing is difficult to trust when the attack team, defense team, and model share infrastructure. Shared files, credentials, networks, logs, or compute resources can expose sensitive test material or contaminate results. If that happens, the test is both insecure and scientifically invalid.
 
@@ -63,6 +66,8 @@ graph TD
 ---
 
 ## 3. Proof Mode Matrix: Tested Mechanisms vs. Documented Assumptions
+<img width="1892" height="905" alt="image" src="https://github.com/user-attachments/assets/cd1e3805-a27f-4535-967a-c82b176f166a" />
+
 
 Bayora makes bounded security claims. The platform maintains an explicit distinction between what is **proven by automated tests** and what is an **architectural assumption**:
 
@@ -208,6 +213,8 @@ backend/tests/test_signatures.py::test_ed25519_manifest_signing_and_verification
 ---
 
 ## 6. Security Principles Followed
+<img width="1896" height="905" alt="image" src="https://github.com/user-attachments/assets/e85c6910-126d-43cf-a999-e1d83a7292f4" />
+
 - **Least Privilege:** Roles strictly limit write and read scopes on the server for every operation.
 - **Canary Concealment:** Canary tokens use synthetic decoy content; audit records commit only to SHA-256 fingerprints, never logging raw secrets.
 - **Privacy by Default:** Raw sensitive attack prompts are not included in exported manifests or evidence reports; only SHA-256 prompt hashes and sanitized summaries are stored.
