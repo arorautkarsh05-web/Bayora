@@ -1,0 +1,132 @@
+version: '3.8'
+
+# Bayora Production Micro-Segmented Architecture
+# Solves Problem Statement: Strict isolation between Red Team, Blue Team, and Model
+# Network boundaries strictly prevent direct red/blue communication and tenant-to-model bypass.
+
+networks:
+  # External ingestion network (Frontend / Reviewer access only)
+  public_gateway_net:
+    driver: bridge
+
+  # Control-plane orchestration network (Mediates runs)
+  control_plane_net:
+    driver: bridge
+    internal: true
+
+  # Red-team isolated network (No route to Blue-team or Model)
+  red_team_net:
+    driver: bridge
+    internal: true
+
+  # Blue-team isolated network (No route to Red-team or Model)
+  blue_team_net:
+    driver: bridge
+    internal: true
+
+  # Model isolated network (Zero external egress, reachable ONLY by Orchestrator)
+  model_isolated_net:
+    driver: bridge
+    internal: true
+
+services:
+  # -------------------------------------------------------------
+  # 1. Bayora Control Plane & Orchestrator
+  # -------------------------------------------------------------
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bayora-orchestrator
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    networks:
+      - public_gateway_net
+      - control_plane_net
+      - red_team_net
+      - blue_team_net
+      - model_isolated_net
+    environment:
+      - BAYORA_HOST=0.0.0.0
+      - BAYORA_PORT=8000
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:deploy/seccomp-profile.json
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: false
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2048M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # -------------------------------------------------------------
+  # 2. Isolated Red-Team Workload Sandbox (Untrusted Tenant)
+  # -------------------------------------------------------------
+  red-team-sandbox:
+    image: python:3.12-alpine
+    container_name: bayora-red-sandbox
+    restart: unless-stopped
+    command: ["sleep", "infinity"]
+    networks:
+      - red_team_net
+    user: "10001:10001"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+
+  # -------------------------------------------------------------
+  # 3. Isolated Blue-Team Workload Sandbox (Untrusted Tenant)
+  # -------------------------------------------------------------
+  blue-team-sandbox:
+    image: python:3.12-alpine
+    container_name: bayora-blue-sandbox
+    restart: unless-stopped
+    command: ["sleep", "infinity"]
+    networks:
+      - blue_team_net
+    user: "10001:10001"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+
+  # -------------------------------------------------------------
+  # 4. Isolated Model Inference Service (High Security Model Host)
+  # Reachable ONLY via model_isolated_net by authorized Orchestrator
+  # -------------------------------------------------------------
+  model-inference-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bayora-model-service
+    restart: unless-stopped
+    networks:
+      - model_isolated_net
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 4096M

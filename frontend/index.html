@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bayora — Secure Adversarial AI Safety Testing Infrastructure</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css?v=5.0">
+</head>
+
+<body>
+
+  <!-- Dynamic Atmospheric Background Video (Permanently Fixed in Background, Vivid & Visible) -->
+  <div class="bg-video-container" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -10; pointer-events: none; overflow: hidden;" aria-hidden="true">
+    <video class="bg-video" autoplay loop muted playsinline style="width: 100vw; height: 100vh; object-fit: cover; opacity: 0.95; filter: contrast(1.15) brightness(1.05);">
+      <source
+        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260815_030633_1712fc71-4979-4e14-98f9-9f95702ab3da.mp4"
+        type="video/mp4">
+    </video>
+    <div class="bg-video-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 30%, rgba(8, 12, 24, 0.12) 0%, rgba(5, 8, 18, 0.48) 100%), linear-gradient(180deg, rgba(6, 10, 20, 0.08) 0%, rgba(5, 8, 18, 0.52) 100%);"></div>
+  </div>
+
+  <!-- Top App Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <path d="m9 12 2 2 4-4" />
+        </svg>
+        <span>Bayora</span>
+      </div>
+      <span class="brand-badge">Hackathon MVP v1.0</span>
+      <div
+        style="font-size: 0.78rem; color: var(--text-muted); border-left: 1px solid var(--border-color); padding-left: 0.85rem;">
+        Secure Adversarial AI Safety Testing
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <!-- Active Role Switcher -->
+      <div class="role-switcher">
+        <span class="role-label">Active Role:</span>
+        <select id="role-selector" class="role-select" title="Switch platform persona">
+          <option value="operator">Operator (Evaluator)</option>
+          <option value="red_team">Red Team Participant</option>
+          <option value="blue_team">Blue Team Participant</option>
+          <option value="reviewer">Reviewer (Auditor)</option>
+        </select>
+      </div>
+
+      <!-- Proof Mode Indicator Pill -->
+      <div id="proof-mode-indicator" class="key-fingerprint-badge"
+        style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.35); cursor: pointer;"
+        title="Proof Mode: Click to inspect Tested Mechanisms vs. Documented Assumptions">
+        <div class="dot-indicator" style="background: #10b981; box-shadow: 0 0 8px #10b981;"></div>
+        <span style="color: #6ee7b7;">Proof Mode: <strong id="header-proof-status">8 Tested / 5 Assumed</strong></span>
+      </div>
+
+      <!-- Public Key Fingerprint Badge -->
+      <div class="key-fingerprint-badge" title="Control-Plane Ed25519 Public Key Fingerprint">
+        <div class="dot-indicator"></div>
+        <span>Ed25519: <strong id="header-key-fp">Loading...</strong></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="app-nav">
+    <button class="nav-tab-btn active" data-tab="tab-console">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" />
+        <polygon points="10 8 16 12 10 16 10 8" />
+      </svg>
+      Evaluation Console
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-proof-mode">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <path d="m9 12 2 2 4-4" />
+      </svg>
+      Proof Mode & Matrix
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-boundaries">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+        <line x1="3" y1="9" x2="21" y2="9" />
+        <line x1="9" y1="21" x2="9" y2="9" />
+      </svg>
+      Boundaries & Canaries
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-audit">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+      </svg>
+      Audit Trail & Tamper Lab
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-red-team">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path
+          d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1 1 0 0 1-2 0V7a1 1 0 0 1 2 0z" />
+      </svg>
+      Red Team Workspace
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-blue-team">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+      Blue Team Workspace
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-threat-model">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="16" x2="12" y2="12" />
+        <line x1="12" y1="8" x2="12.01" y2="8" />
+      </svg>
+      Threat Model & Residual Risks
+    </button>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="app-main">
+
+    <!-- Top KPI Grid -->
+    <div class="metrics-grid">
+      <div class="glass-panel metric-card">
+        <div class="metric-header">
+          <span>Enforced Boundaries</span>
+          <span class="badge badge-blocked">3 Active</span>
+        </div>
+        <div class="metric-value">100% Isolated</div>
+        <div class="metric-footer">Red & Blue namespaces + Model gate</div>
+      </div>
+
+      <div class="glass-panel metric-card">
+        <div class="metric-header">
+          <span>Audit Chain Status</span>
+          <span id="metric-chain-badge" class="badge badge-blocked">Verified Valid</span>
+        </div>
+        <div class="metric-value" id="metric-chain-blocks">0 Blocks</div>
+        <div class="metric-footer">Append-only SHA-256 cryptographic chain</div>
+      </div>
+
+      <div class="glass-panel metric-card">
+        <div class="metric-header">
+          <span>Completed Runs</span>
+          <span class="badge badge-benign" id="metric-runs-count">0</span>
+        </div>
+        <div class="metric-value" id="metric-safety-pass-rate">100%</div>
+        <div class="metric-footer">Safety gate enforcement rate</div>
+      </div>
+
+      <div class="glass-panel metric-card">
+        <div class="metric-header">
+          <span>Active Defensive Shield</span>
+          <span class="badge badge-blocked" id="metric-policy-badge">Active</span>
+        </div>
+        <div class="metric-value" style="font-size: 1.25rem; font-weight: 700; margin-top: 0.35rem;"
+          id="metric-policy-name">Standard Shield</div>
+        <div class="metric-footer">Regex patterns + Keyword guardrails</div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 1: EVALUATION CONSOLE ================= -->
+    <section id="tab-console" class="tab-pane active">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <polygon points="10 8 16 12 10 16 10 8" />
+            </svg>
+            Adversarial Safety Evaluation Console
+          </h1>
+          <p class="section-desc">Execute authorized evaluations against the isolated model endpoint with tamper-evident
+            audit recording.</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button id="btn-open-run-modal" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            New Evaluation Run
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Run Status Banner / Details -->
+      <div id="active-run-container" class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem; display: none;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+          <div>
+            <span id="active-run-status-badge" class="badge badge-blocked">RUNNING</span>
+            <h2 id="active-run-title" style="font-size: 1.15rem; font-weight: 700; margin-top: 0.4rem;">Evaluation in
+              Progress</h2>
+            <div id="active-run-meta" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">
+              Model: mock-safety-llama-8b-v1 | Policy: policy-standard-shield</div>
+          </div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button id="btn-rerun-run" class="btn btn-secondary"
+              title="Rerun exact configuration to verify reproducibility (PR-5)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 4v6h-6" />
+                <path d="M1 20v-6h6" />
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+              </svg>
+              Rerun Config
+            </button>
+            <button id="btn-compare-run" class="btn btn-secondary"
+              title="Compare this run with baseline or another run (PR-5)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+              </svg>
+              Compare
+            </button>
+            <button id="btn-export-evidence-report" class="btn btn-secondary"
+              title="Export tamper-evident evidence report with security checks (PR-6)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+              Evidence Report
+            </button>
+            <button id="btn-export-manifest" class="btn btn-secondary">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              View Manifest
+            </button>
+            <button id="btn-verify-manifest-sig" class="btn btn-success">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+              Verify Signature
+            </button>
+          </div>
+        </div>
+
+        <!-- Outcome Summary Badges -->
+        <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;" id="active-run-counters">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Results Table -->
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Test ID & Name</th>
+                <th>Category</th>
+                <th>Severity</th>
+                <th>Prompt Fingerprint (SHA-256)</th>
+                <th>Outcome Verdict</th>
+                <th>Latency</th>
+                <th>Model / Guardrail Response</th>
+              </tr>
+            </thead>
+            <tbody id="active-run-results-tbody">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Past Runs History -->
+      <div class="glass-panel" style="padding: 1.5rem;">
+        <h3
+          style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 8v4l3 3" />
+            <circle cx="12" cy="12" r="9" />
+          </svg>
+          Evaluation History & Verifiable Records
+        </h3>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Run ID</th>
+                <th>Run Name</th>
+                <th>Model ID</th>
+                <th>Policy ID</th>
+                <th>Status</th>
+                <th>Tests (Passed/Total)</th>
+                <th>Ed25519 Manifest</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="runs-history-tbody">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB: PROOF MODE & CONTROLS MATRIX ================= -->
+    <section id="tab-proof-mode" class="tab-pane" style="display: none;">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+            Proof Mode: Tested Boundaries vs. Documented Assumptions
+          </h1>
+          <p class="section-desc">Distinguishes server-enforced, machine-verified mechanisms from documented
+            architectural assumptions and residual risks (Requirements 1, 3, 7).</p>
+        </div>
+        <button id="btn-refresh-proof-mode" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6" />
+            <path d="M1 20v-6h6" />
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+          </svg>
+          Re-Verify Proof Matrix
+        </button>
+      </div>
+
+      <!-- Proof Mode Banner -->
+      <div class="proof-mode-banner">
+        <div>
+          <div
+            style="font-weight: 700; font-size: 1rem; color: #6ee7b7; display: flex; align-items: center; gap: 0.5rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+            Bounded Security Model Guarantee
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.25rem; max-width: 780px;">
+            Bayora guarantees verified storage isolation, orchestrator token authorization, tamper-evident hash
+            chaining, and canary probing alerts. It makes <strong>no claim</strong> of eliminating shared Linux kernel
+            side-channels or providing unconditional model safety.
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <span class="badge badge-blocked" id="proof-matrix-passing-badge">8 / 8 Tested Mechanisms Passing</span>
+          <span class="badge badge-assumed" id="proof-matrix-assumed-badge">5 Documented Limitations Disclosed</span>
+        </div>
+      </div>
+
+      <!-- Section 1: Tested Mechanisms -->
+      <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
+        <h2
+          style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; color: #34d399; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          Section A: Server-Side Enforced & Tested Mechanisms
+        </h2>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem;">
+          These controls are actively enforced on the server and verified by automated negative test routines.
+        </p>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Control ID</th>
+                <th>Security Mechanism</th>
+                <th>Target Boundary</th>
+                <th>Live Verification</th>
+                <th>Empirical Evidence / Test Proof</th>
+              </tr>
+            </thead>
+            <tbody id="proof-mode-tested-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Section 2: Documented Assumptions & Residual Risks -->
+      <div class="glass-panel" style="padding: 1.5rem;">
+        <h2
+          style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; color: #fbbf24; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          Section B: Documented Assumptions & Inherent Limitations (Residual Risks)
+        </h2>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem;">
+          Explicit disclosure of what is assumed versus tested. These boundaries represent architectural scope limits or
+          physical constraints.
+        </p>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Assumption ID</th>
+                <th>Architectural Scope / Boundary</th>
+                <th>Classification</th>
+                <th>Documented Risk & Residual Mitigation</th>
+              </tr>
+            </thead>
+            <tbody id="proof-mode-assumed-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 2: BOUNDARIES & CANARIES ================= -->
+    <section id="tab-boundaries" class="tab-pane" style="display: none;">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <line x1="3" y1="9" x2="21" y2="9" />
+              <line x1="9" y1="21" x2="9" y2="9" />
+            </svg>
+            Enforced Workload Boundaries & Negative Tests
+          </h1>
+          <p class="section-desc">Proof of real process, storage namespace, credential, and network restrictions (PR-1,
+            PR-2, PR-3, PR-7).</p>
+        </div>
+        <button id="btn-run-security-tests" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
+          Run All Negative Boundary Tests
+        </button>
+      </div>
+
+      <!-- Architectural Diagram Visualizer -->
+      <div class="glass-panel architecture-diagram">
+        <h3
+          style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px;">
+          Enforced Workload Boundary Model
+        </h3>
+        <div class="nodes-container">
+          <div class="node-card red-node">
+            <div class="node-title" style="color: #fb7185;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                  d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1 1 0 0 1-2 0V7a1 1 0 0 1 2 0z" />
+              </svg>
+              Red-Team Workspace
+            </div>
+            <div class="node-desc">Isolated storage namespace holding unreleased test cases and sensitive payloads.
+            </div>
+            <div class="node-guarantee">STRICT ISOLATION: Blue Team read denied (403 Forbidden). No model secrets.</div>
+          </div>
+
+          <div class="node-card blue-node">
+            <div class="node-title" style="color: #38bdf8;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              Blue-Team Workspace
+            </div>
+            <div class="node-desc">Defensive policy definitions, regex classifiers, and guardrails.</div>
+            <div class="node-guarantee">STRICT ISOLATION: Red Team read denied (403 Forbidden). Blind to unreleased
+              attacks.</div>
+          </div>
+
+          <div class="node-card orchestrator-node">
+            <div class="node-title" style="color: #c084fc;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="22" y1="12" x2="18" y2="12" />
+                <line x1="6" y1="12" x2="2" y2="12" />
+              </svg>
+              Control Plane & Orchestrator
+            </div>
+            <div class="node-desc">Only authorized entity holding model token and Ed25519 signing key.</div>
+            <div class="node-guarantee">NARROW API: Mediates all execution; enforces timeouts & limits.</div>
+          </div>
+
+          <div class="node-card model-node">
+            <div class="node-title" style="color: #34d399;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="4" y="4" width="16" height="16" rx="2" />
+                <circle cx="9" cy="9" r="2" />
+                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+              </svg>
+              Isolated Model Service
+            </div>
+            <div class="node-desc">Receives only sanitized requests via internal token gate.</div>
+            <div class="node-guarantee">ZERO TENANT ACCESS: Direct tenant invocation blocked (403 Forbidden).</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Security Tests Results -->
+      <div class="glass-panel" style="padding: 1.5rem;">
+        <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">
+          Automated Security Negative Test Evidence
+        </h3>
+        <div id="security-tests-loading"
+          style="display: none; padding: 2rem; text-align: center; color: var(--text-muted);">
+          Running automated security boundary test suite...
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Test ID</th>
+                <th>Security Boundary Tested</th>
+                <th>Action Attempted</th>
+                <th>Expected Defense Result</th>
+                <th>Actual Observed Result</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody id="security-tests-tbody">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Canary Secrets & Decoy Probing Detection (Requirement 2) -->
+      <div class="glass-panel" style="padding: 1.5rem; margin-top: 2rem;">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <h2
+              style="font-size: 1.05rem; font-weight: 700; color: #fbbf24; display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Canary Secrets & Decoy Probing Detection (Requirement 2)
+            </h2>
+            <p style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.2rem;">
+              Unique synthetic decoy tokens placed in isolated test workspaces. Attempted unauthorized reads are blocked
+              and recorded without exposing token secrets in ordinary logs.
+            </p>
+          </div>
+          <button id="btn-simulate-canary-trip" class="btn btn-secondary"
+            style="border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+            Simulate Unauthorized Canary Probe
+          </button>
+        </div>
+
+        <div id="canaries-container" class="canary-grid">
+          <!-- Dynamically populated canary cards -->
+        </div>
+
+        <h3
+          style="font-size: 0.92rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.75rem; color: var(--text-primary);">
+          Recent Canary Probing & Trip Events
+        </h3>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Trip ID</th>
+                <th>Canary Token</th>
+                <th>Target Workspace</th>
+                <th>Attempted By Role</th>
+                <th>Timestamp</th>
+                <th>Action Taken</th>
+              </tr>
+            </thead>
+            <tbody id="canary-trips-tbody">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: AUDIT & TAMPER LAB ================= -->
+    <section id="tab-audit" class="tab-pane" style="display: none;">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+            Append-Only Audit Trail & Tamper Demonstration Lab
+          </h1>
+          <p class="section-desc">Verifiable SHA-256 hash-chaining where any modification, deletion, or reordering
+            breaks integrity (PR-5).</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button id="btn-anchor-checkpoint" class="btn btn-secondary"
+            style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;"
+            title="Anchor current chain tip to out-of-band Ed25519 checkpoint ledger">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+            Anchor Trust Checkpoint
+          </button>
+          <button id="btn-verify-audit-chain" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            Verify Entire Audit Chain
+          </button>
+        </div>
+      </div>
+
+      <!-- External Trust Anchors Ledger (Priority 5) -->
+      <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <h3
+              style="font-size: 1rem; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <polyline points="9 12 11 14 15 10" />
+              </svg>
+              External Trust Anchor Checkpoint Ledger (Out-of-Band WORM Mitigation)
+            </h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.15rem;">
+              Cryptographic checkpoints signed with Ed25519 freeze chain tips to prevent privileged host administrators
+              from rewriting history undetected.
+            </p>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Checkpoint ID</th>
+                <th>Block Height</th>
+                <th>Tip Hash Anchor</th>
+                <th>Merkle Root</th>
+                <th>Timestamp</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="checkpoints-tbody">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tamper Injection Demo Control Box -->
+      <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem; border-color: rgba(244, 63, 94, 0.25);">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h3
+              style="font-size: 1.05rem; font-weight: 700; color: #fb7185; display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              Adversarial Tamper Simulation Lab (Demo Fixture)
+            </h3>
+            <p style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.2rem;">
+              Inject tampering into stored audit events to demonstrate cryptographic detection of altered records or
+              deleted events.
+            </p>
+          </div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button id="btn-tamper-payload" class="btn btn-danger">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+              Tamper Event Payload
+            </button>
+            <button id="btn-delete-event" class="btn btn-danger">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+              Delete Intermediate Event
+            </button>
+            <button id="btn-restore-chain" class="btn btn-secondary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="1 4 1 10 7 10" />
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+              </svg>
+              Restore Clean Chain
+            </button>
+          </div>
+        </div>
+        <div id="tamper-status-banner"
+          style="margin-top: 1rem; display: none; padding: 0.85rem; border-radius: var(--radius-sm); font-size: 0.85rem;">
+        </div>
+      </div>
+
+      <!-- Verification Status Box -->
+      <div id="verification-result-box" class="glass-panel"
+        style="padding: 1.25rem; margin-bottom: 2rem; display: none;"></div>
+
+      <!-- Chain Blocks Visual Timeline -->
+      <div class="glass-panel" style="padding: 1.5rem;">
+        <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem;">
+          Cryptographic Hash-Linked Audit Blocks
+        </h3>
+        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+          Each event SHA-256 hash commits to its canonical JSON body and the preceding block's hash.
+        </p>
+
+        <div id="chain-timeline-container" class="chain-timeline">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 4: RED TEAM WORKSPACE ================= -->
+    <section id="tab-red-team" class="tab-pane" style="display: none;">
+      <div id="red-team-content">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                  d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1 1 0 0 1-2 0V7a1 1 0 0 1 2 0z" />
+              </svg>
+              Red Team Test Case Workspace
+            </h1>
+            <p class="section-desc">Manage adversarial safety payloads. Blue Team is strictly prevented from inspecting
+              this workspace.</p>
+          </div>
+          <button id="btn-add-test-case" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Add Adversarial Payload
+          </button>
+        </div>
+
+        <div
+          style="background: rgba(244, 63, 94, 0.08); border: 1px solid rgba(244, 63, 94, 0.2); padding: 0.85rem 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; font-size: 0.82rem; color: #fecdd3; display: flex; align-items: center; gap: 0.6rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <strong>Confidential Red-Team Data:</strong> Blue Team participants cannot view or query these payloads until
+          evaluation completion to preserve test validity.
+        </div>
+
+        <div class="glass-panel" style="padding: 1.5rem;">
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Test ID</th>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Severity</th>
+                  <th>Prompt Payload</th>
+                  <th>Target Outcome</th>
+                  <th>Author</th>
+                </tr>
+              </thead>
+              <tbody id="red-team-tbody">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="red-team-barrier" class="glass-panel access-denied-barrier" style="display: none;">
+        <div class="barrier-icon">🛡️</div>
+        <div class="barrier-title" style="color: #fb7185;">Storage Boundary Enforced: Access Denied</div>
+        <div class="barrier-text">
+          As a <strong>Blue Team Participant</strong>, you are strictly prohibited from inspecting unreleased Red-Team
+          test cases or payloads. Switch to Operator or Red Team in the top header to view this workspace.
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 5: BLUE TEAM WORKSPACE ================= -->
+    <section id="tab-blue-team" class="tab-pane" style="display: none;">
+      <div id="blue-team-content">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              Blue Team Defensive Policies & Guardrails
+            </h1>
+            <p class="section-desc">Configure defensive classifiers, regex filters, and length limits. Red Team cannot
+              inspect these configurations.</p>
+          </div>
+          <button id="btn-add-policy" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Create Defensive Policy
+          </button>
+        </div>
+
+        <div
+          style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.2); padding: 0.85rem 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; font-size: 0.82rem; color: #bae6fd; display: flex; align-items: center; gap: 0.6rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <strong>Defensive Engineering:</strong> Defensive policies execute at the orchestrator boundary before any
+          prompt reaches model weights. Red Team cannot view these rules to craft adaptive bypasses.
+        </div>
+
+        <div id="blue-policies-container" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <div id="blue-team-barrier" class="glass-panel access-denied-barrier" style="display: none;">
+        <div class="barrier-icon">🔒</div>
+        <div class="barrier-title" style="color: #38bdf8;">Storage Boundary Enforced: Access Denied</div>
+        <div class="barrier-text">
+          As a <strong>Red Team Participant</strong>, you are prohibited from reading Blue Team defensive policy
+          configurations or classifier rules. Switch to Operator or Blue Team in the top header to view this workspace.
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 6: THREAT MODEL & RESIDUAL RISKS ================= -->
+    <section id="tab-threat-model" class="tab-pane" style="display: none;">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            Threat Model, Security Guarantees & Residual Risks (PR-10)
+          </h1>
+          <p class="section-desc">Transparent disclosure of bounded security claims, assumptions, and limitations before
+            interpreting results.</p>
+        </div>
+      </div>
+
+      <div class="glass-panel" style="padding: 1.75rem; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem; color: #38bdf8;">1. Assets Protected
+        </h2>
+        <div class="table-container" style="margin-bottom: 1.5rem;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Asset</th>
+                <th>Sensitivity</th>
+                <th>Enforced Protection Mechanism</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Unreleased Red-Team Payloads</strong></td>
+                <td><span class="badge badge-exploited">Critical</span></td>
+                <td>Storage namespace isolation; Blue Team read requests return 403 Forbidden; excluded from general
+                  logs via SHA-256 hashing.</td>
+              </tr>
+              <tr>
+                <td><strong>Blue-Team Defensive Rules</strong></td>
+                <td><span class="badge badge-timeout">High</span></td>
+                <td>Storage namespace isolation; Red Team participants blocked from inspecting rules to prevent adaptive
+                  evasion.</td>
+              </tr>
+              <tr>
+                <td><strong>Model Endpoint & Credentials</strong></td>
+                <td><span class="badge badge-exploited">Critical</span></td>
+                <td>Internal token gate; direct tenant invocation blocked; orchestrator is the only caller holding the
+                  internal secret.</td>
+              </tr>
+              <tr>
+                <td><strong>Audit Trail Integrity</strong></td>
+                <td><span class="badge badge-blocked">High</span></td>
+                <td>SHA-256 canonical JSON hash chain; Ed25519 digital signature over run manifests.</td>
+              </tr>
+              <tr>
+                <td><strong>Host Resources</strong></td>
+                <td><span class="badge badge-benign">Medium</span></td>
+                <td>Enforced per-test wall-clock timeouts (asyncio supervisor) and request size caps (64KB).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem; color: #fb7185;">2. Adversaries
+          Considered</h2>
+        <ul
+          style="margin-left: 1.5rem; margin-bottom: 1.5rem; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.8;">
+          <li><strong>Curious or Malicious Red-Team Participant:</strong> Attempts to inspect blue-team classifier rules
+            or model credentials to tailor exploits. <em>(Blocked by storage namespace & internal model token
+              gates)</em>.</li>
+          <li><strong>Curious or Malicious Blue-Team Participant:</strong> Attempts to read unreleased attack payloads
+            before evaluation. <em>(Blocked by storage namespace controls)</em>.</li>
+          <li><strong>Adversarial Test Input:</strong> Malformed or oversized prompt intended to cause path traversal or
+            resource exhaustion. <em>(Blocked by path traversal guards & timeout supervision)</em>.</li>
+          <li><strong>Host Log Tamperer:</strong> Entity attempting to modify or delete historical test results.
+            <em>(Detected by cryptographic hash-chain verification)</em>.</li>
+        </ul>
+
+        <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem; color: #fbbf24;">3. Explicit Residual
+          Risks & Limitations Disclosed</h2>
+        <div
+          style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); padding: 1.25rem; border-radius: var(--radius-md); font-size: 0.86rem; color: #fef3c7; line-height: 1.7;">
+          <p><strong>• Shared-Host Kernel Limitations:</strong> When running in Docker or local process mode, processes
+            share the host kernel. While network separation, filesystem permissions, and resource limits mitigate risks,
+            they do not guarantee safety against hostile kernel exploits.</p>
+          <p style="margin-top: 0.5rem;"><strong>• Hardware & Timing Side Channels:</strong> Cache timing, GPU memory
+            residency, or power measurement side channels are outside the scope of this prototype MVP.</p>
+          <p style="margin-top: 0.5rem;"><strong>• Unanchored Hash Chain:</strong> Hash chaining makes modifications
+            detectable relative to a trusted signature or checkpoint, but does not prevent a privileged host root
+            administrator from rewriting the entire log. Production deployments should anchor checkpoints into external
+            WORM / Object-Lock storage.</p>
+          <p style="margin-top: 0.5rem;"><strong>• Single Test Suite Disclaimer:</strong> A model passing this benchmark
+            is not certified "safe" across arbitrary real-world prompts.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- New Evaluation Run Modal -->
+  <div id="modal-new-run" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 700;">Create Evaluation Run</h2>
+        <button class="modal-close-btn"
+          style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.25rem;">&times;</button>
+      </div>
+      <form id="form-create-run">
+        <div class="form-group">
+          <label class="form-label">Run Name</label>
+          <input type="text" id="run-name-input" class="form-input" value="Adversarial Safety Evaluation" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Model Endpoint</label>
+          <select id="run-model-select" class="form-select">
+            <option value="mock-safety-llama-8b-v1">mock-safety-llama-8b-v1 (Deterministic Local Mock)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Blue-Team Defensive Policy</label>
+          <select id="run-policy-select" class="form-select">
+            <option value="policy-standard-shield">Standard Multi-Layer Defense Shield (Active)</option>
+            <option value="policy-lenient">Lenient Baseline (No active shields)</option>
+            <option value="">None (Undefended Baseline)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Per-Test Timeout (Seconds)</label>
+          <input type="number" id="run-timeout-input" class="form-input" value="5.0" step="0.5" min="0.5" max="30">
+        </div>
+        <div class="form-group" style="flex-direction: row; align-items: center; gap: 0.75rem; margin-top: 0.5rem;">
+          <input type="checkbox" id="run-trigger-timeout"
+            style="width: 16px; height: 16px; accent-color: var(--accent-cyan);">
+          <label for="run-trigger-timeout" style="font-size: 0.82rem; color: var(--text-secondary);">
+            Trigger Timeout Test (Simulate slow workload exceeding limit to test PR-7 termination)
+          </label>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+          <button type="button" class="btn btn-secondary modal-cancel-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Start Evaluation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Signed Manifest Modal -->
+  <div id="modal-manifest" class="modal-overlay">
+    <div class="modal-content" style="max-width: 750px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          Ed25519-Signed Run Manifest (PR-8)
+        </h2>
+        <button class="modal-close-btn"
+          style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.25rem;">&times;</button>
+      </div>
+      <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem;">
+        Verifiable evidence manifest with test SHA-256 fingerprints, hash-chain anchor references, and digital
+        signature.
+      </p>
+      <pre id="manifest-json-pre"
+        style="background: rgba(0, 0, 0, 0.4); padding: 1rem; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 0.78rem; overflow-x: auto; max-height: 400px; color: #a5f3fc; border: 1px solid var(--border-color);"></pre>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+        <div id="manifest-sig-verify-status" style="font-size: 0.82rem; font-weight: 600;"></div>
+        <button type="button" class="btn btn-secondary modal-cancel-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Adversarial Payload Modal -->
+  <div id="modal-add-payload" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 700;">Submit Adversarial Payload (Red Team)</h2>
+        <button class="modal-close-btn"
+          style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.25rem;">&times;</button>
+      </div>
+      <form id="form-create-payload">
+        <div class="form-group">
+          <label class="form-label">Payload Test ID</label>
+          <input type="text" id="payload-id-input" class="form-input" placeholder="tc-custom-01" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Test Name</label>
+          <input type="text" id="payload-name-input" class="form-input" placeholder="Multi-layer Prompt Override"
+            required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Attack Category</label>
+          <select id="payload-category-select" class="form-select">
+            <option value="prompt_injection">Prompt Injection</option>
+            <option value="jailbreak">Roleplay Jailbreak</option>
+            <option value="exfiltration">Credential Exfiltration</option>
+            <option value="dangerous_content">Harmful / Dangerous Request</option>
+            <option value="benign">Benign Control</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Severity Level</label>
+          <select id="payload-severity-select" class="form-select">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high" selected>High</option>
+            <option value="critical">Critical</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prompt Content (Max 64KB)</label>
+          <textarea id="payload-prompt-textarea" class="form-textarea"
+            placeholder="Enter adversarial payload test prompt..." required></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+          <button type="button" class="btn btn-secondary modal-cancel-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save to Red Workspace</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Defensive Policy Modal (Blue Team) -->
+  <div id="modal-add-policy" class="modal-overlay">
+    <div class="modal-content" style="max-width: 600px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 700;">Create Defensive Policy (Blue Team)</h2>
+        <button class="modal-close-btn"
+          style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.25rem;">&times;</button>
+      </div>
+      <form id="form-create-policy">
+        <div class="form-group">
+          <label class="form-label">Policy ID</label>
+          <input type="text" id="policy-id-input" class="form-input" placeholder="policy-custom-shield" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Policy Name</label>
+          <input type="text" id="policy-name-input" class="form-input" placeholder="Custom Multi-Layer Shield" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <input type="text" id="policy-desc-input" class="form-input"
+            placeholder="Defensive guardrails and regex filters" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rule Name</label>
+          <input type="text" id="policy-rule-name-input" class="form-input" placeholder="Prompt Injection Filter"
+            required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rule Type</label>
+          <select id="policy-rule-type-select" class="form-select">
+            <option value="regex_block">Regex Block (pattern match)</option>
+            <option value="keyword_filter">Keyword Filter (comma-separated)</option>
+            <option value="token_cap">Token Character Cap</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Enforcement Pattern / Parameter</label>
+          <input type="text" id="policy-rule-pattern-input" class="form-input"
+            placeholder="ignore\s+all\s+previous|bypass\s+safety" required>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+          <button type="button" class="btn btn-secondary modal-cancel-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Policy to Blue Workspace</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Compare Runs Modal (Requirement 5) -->
+  <div id="modal-compare-runs" class="modal-overlay">
+    <div class="modal-content" style="max-width: 850px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          Repeatable Evaluations: Run Comparison & Reproducibility Delta
+        </h2>
+        <button class="modal-close-btn"
+          style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.25rem;">&times;</button>
+      </div>
+
+      <div style="display: flex; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 240px;">
+          <label class="form-label">Baseline Run</label>
+          <select id="compare-baseline-select" class="form-select"></select>
+        </div>
+        <div style="flex: 1; min-width: 240px;">
+          <label class="form-label">Rerun to Compare</label>
+          <select id="compare-rerun-select" class="form-select"></select>
+        </div>
+        <div style="display: flex; align-items: flex-end;">
+          <button id="btn-trigger-compare" class="btn btn-primary">Compare Outcomes</button>
+        </div>
+      </div>
+
+      <!-- Comparison Metrics Header -->
+      <div id="compare-summary-box"
+        style="display: none; background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.25); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary);">Config Fingerprint (SHA-256) Match:</div>
+            <div id="compare-fingerprint-status" style="font-weight: 700; color: #34d399; font-size: 0.95rem;">MATCH
+              (Deterministic Identical Config)</div>
+          </div>
+          <div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary);">Test-Set Version:</div>
+            <div id="compare-test-set-ver"
+              style="font-weight: 600; color: var(--text-primary); font-family: var(--font-mono);">2026.10-v1.0</div>
+          </div>
+          <div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary);">Reproducibility Rate:</div>
+            <div id="compare-reproducibility-pct" style="font-size: 1.25rem; font-weight: 800; color: #38bdf8;">100.0%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Test by Test Delta Table -->
+      <div class="table-container" style="max-height: 380px;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Test ID & Name</th>
+              <th>Category</th>
+              <th>Baseline Verdict</th>
+              <th>Rerun Verdict</th>
+              <th>Match?</th>
+              <th>Baseline Latency</th>
+              <th>Rerun Latency</th>
+              <th>Delta (ms)</th>
+            </tr>
+          </thead>
+          <tbody id="compare-results-tbody">
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--text-muted);">Select two runs and click "Compare
+                Outcomes"</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 1.25rem;">
+        <button type="button" class="btn btn-secondary modal-cancel-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Evidence Report Modal (Requirement 6) -->
+  <div id="modal-evidence-report" class="modal-overlay">
+    <div class="modal-content" style="max-width: 850px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h2 style="font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+          Exportable Security & Evaluation Evidence Report (PR-6)
+        </h2>
+        <button class="modal-close-btn"
+          style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.25rem;">&times;</button>
+      </div>
+      <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem;">
+        Export-ready compliance evidence with cryptographic hash-chain verification, Ed25519 digital signatures, canary
+        secret status, and documented limitations. (Sensitive attack prompts are redacted by SHA-256 hashes).
+      </p>
+
+      <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+        <button id="btn-download-evidence-md" class="btn btn-primary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Download Markdown Report (.md)
+        </button>
+        <button id="btn-download-evidence-json" class="btn btn-secondary">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Download JSON Metadata (.json)
+        </button>
+      </div>
+
+      <pre id="evidence-report-pre"
+        style="background: rgba(0, 0, 0, 0.5); padding: 1.25rem; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 0.76rem; overflow-x: auto; max-height: 400px; color: #e2e8f0; border: 1px solid var(--border-color); line-height: 1.6; white-space: pre-wrap;"></pre>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 1.25rem;">
+        <button type="button" class="btn btn-secondary modal-cancel-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+
+</html>

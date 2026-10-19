@@ -1,0 +1,38 @@
+{
+  "canary-red-payload-01": {
+    "token_id": "canary-red-payload-01",
+    "name": "Red Team Confidential Payload Canary",
+    "workspace_location": "red_team",
+    "file_name": "canary_red_payload.json",
+    "description": "Fake canary payload placed in red-team workspace to detect snooping by blue-team",
+    "token_hash": "42c4a5e2b9822b98de4c00d5b12e0ad29af676f1baafdc372df5e8337c144176",
+    "created_at": "2026-10-04T10:54:17.546273+00:00",
+    "tripped": true,
+    "trip_count": 100,
+    "last_tripped_at": "2026-10-19T15:36:54.405529+00:00"
+  },
+  "canary-blue-policy-01": {
+    "token_id": "canary-blue-policy-01",
+    "name": "Blue Team Guardrail Canary Key",
+    "workspace_location": "blue_team",
+    "file_name": "canary_blue_classifier.json",
+    "description": "Fake canary classifier rule placed in blue-team workspace to detect reconnaissance by red-team",
+    "token_hash": "5c2144a770423f043519706be2210a329e382a5f0751ad3307e9622dbe331b2c",
+    "created_at": "2026-10-04T10:54:17.546273+00:00",
+    "tripped": true,
+    "trip_count": 13,
+    "last_tripped_at": "2026-10-19T15:21:15.944800+00:00"
+  },
+  "canary-model-endpoint-01": {
+    "token_id": "canary-model-endpoint-01",
+    "name": "Model Internal Service Canary",
+    "workspace_location": "model",
+    "file_name": "canary_model_access.json",
+    "description": "Fake model credential canary to detect tenant attempts to read model state",
+    "token_hash": "b864960f30f3ab6f2ef5d2a8d0c452e6f65dd0562b55a576759eda6816aa3228",
+    "created_at": "2026-10-04T10:54:17.546273+00:00",
+    "tripped": false,
+    "trip_count": 0,
+    "last_tripped_at": null
+  }
+}

@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environments
+.venv/
+env/
+venv/
+
+# Cryptographic Keys & Secrets (Must NEVER be committed to VCS)
+backend/data/keys/*.pem
+backend/data/keys/*.key
+backend/data/keys/*.secret
+!backend/data/keys/README.md
+
+# Local runtime data
+backend/data/workspaces/*/*.json
+!backend/data/workspaces/*/.gitkeep
+backend/data/audit/*.jsonl
+backend/data/checkpoints/*.jsonl
