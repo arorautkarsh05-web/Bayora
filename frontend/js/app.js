@@ -91,16 +91,98 @@ function setupTabs() {
 
 function setupRoleSelector() {
   const selector = document.getElementById('role-selector');
-  selector.addEventListener('change', async e => {
-    state.activeRole = e.target.value;
-    state.activeUser = `user-${state.activeRole}`;
-    state.bearerToken = '';
-    await ensureAuthToken();
-    applyRolePermissions();
-    // Refresh current active tab
-    const activeTab = document.querySelector('.nav-tab-btn.active');
-    if (activeTab) activeTab.click();
-  });
+  const dropdown = document.getElementById('role-dropdown');
+  const trigger = document.getElementById('role-dropdown-trigger');
+  const menu = document.getElementById('role-dropdown-menu');
+  const selectedText = document.getElementById('role-selected-text');
+  const triggerDot = trigger ? trigger.querySelector('.role-indicator') : null;
+  const items = menu ? menu.querySelectorAll('.dropdown-item') : [];
+
+  const roleMeta = {
+    operator: { name: 'Operator (Evaluator)', dotClass: 'role-indicator-operator' },
+    red_team: { name: 'Red Team Participant', dotClass: 'role-indicator-red' },
+    blue_team: { name: 'Blue Team Participant', dotClass: 'role-indicator-blue' },
+    reviewer: { name: 'Reviewer (Auditor)', dotClass: 'role-indicator-reviewer' }
+  };
+
+  function updateCustomDropdownUI(role) {
+    const meta = roleMeta[role] || { name: role, dotClass: 'role-indicator-operator' };
+    if (selectedText) selectedText.textContent = meta.name;
+    if (triggerDot) {
+      triggerDot.className = `role-indicator ${meta.dotClass}`;
+    }
+    items.forEach(item => {
+      if (item.getAttribute('data-value') === role) {
+        item.classList.add('selected');
+      } else {
+        item.classList.remove('selected');
+      }
+    });
+  }
+
+  if (trigger && menu) {
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = menu.classList.toggle('show');
+      trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    items.forEach(item => {
+      item.addEventListener('click', e => {
+        e.stopPropagation();
+        const value = item.getAttribute('data-value');
+        menu.classList.remove('show');
+        trigger.setAttribute('aria-expanded', 'false');
+
+        if (selector) {
+          selector.value = value;
+          updateCustomDropdownUI(value);
+          selector.dispatchEvent(new Event('change'));
+        }
+      });
+
+      item.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          item.click();
+        }
+      });
+    });
+
+    // Close when clicking outside
+    document.addEventListener('click', e => {
+      if (dropdown && !dropdown.contains(e.target)) {
+        menu.classList.remove('show');
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && menu.classList.contains('show')) {
+        menu.classList.remove('show');
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.focus();
+      }
+    });
+  }
+
+  if (selector) {
+    selector.addEventListener('change', async e => {
+      state.activeRole = e.target.value;
+      state.activeUser = `user-${state.activeRole}`;
+      state.bearerToken = '';
+      updateCustomDropdownUI(state.activeRole);
+      await ensureAuthToken();
+      applyRolePermissions();
+      // Refresh current active tab
+      const activeTab = document.querySelector('.nav-tab-btn.active');
+      if (activeTab) activeTab.click();
+    });
+
+    // Initial sync
+    updateCustomDropdownUI(selector.value || 'operator');
+  }
 }
 
 function applyRolePermissions() {
@@ -1103,7 +1185,7 @@ window.openCompareModal = function(prefillBaselineId) {
   const rerunSelect = document.getElementById('compare-rerun-select');
   if (!baseSelect || !rerunSelect) return;
 
-  const options = state.runs.map(r => `<option value="${r.id}">${r.id} - ${r.name} (${r.model_id})</option>`).join('');
+  const options = state.runs.map(r => `<option value="${r.id}" title="${r.id} - ${r.name} (${r.model_id})">${r.id} - ${r.name} (${r.model_id})</option>`).join('');
   baseSelect.innerHTML = options;
   rerunSelect.innerHTML = options;
 

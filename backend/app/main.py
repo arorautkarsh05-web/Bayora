@@ -104,3 +104,10 @@ if FRONTEND_DIR.exists():
             return FileResponse(index_file)
         return {"message": "Bayora API running. Frontend index.html not yet placed."}
 
+    @app.get("/favicon.ico", include_in_schema=False)
+    def serve_favicon():
+        fav_file = FRONTEND_DIR / "assets" / "logo.png"
+        if fav_file.exists():
+            return FileResponse(fav_file)
+        return FileResponse(FRONTEND_DIR / "index.html")
+

@@ -4,13 +4,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
   <title>Bayora — Secure Adversarial AI Safety Testing Infrastructure</title>
+  <link rel="icon" type="image/png" href="/static/assets/logo.png?v=3">
+  <link rel="apple-touch-icon" href="/static/assets/logo.png?v=3">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/style.css?v=5.0">
+  <link rel="stylesheet" href="/static/css/style.css?v=5.5">
 </head>
 
 <body>
@@ -28,12 +31,8 @@
   <!-- Top App Header -->
   <header class="app-header">
     <div class="brand-section">
-      <div class="brand-logo">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          <path d="m9 12 2 2 4-4" />
-        </svg>
+      <div class="brand-logo" title="Bayora Secure Adversarial AI Platform">
+        <img src="/static/assets/logo.png?v=3" alt="Bayora Logo" class="brand-logo-img">
         <span>Bayora</span>
       </div>
       <span class="brand-badge">Hackathon MVP v1.0</span>
@@ -47,12 +46,56 @@
       <!-- Active Role Switcher -->
       <div class="role-switcher">
         <span class="role-label">Active Role:</span>
-        <select id="role-selector" class="role-select" title="Switch platform persona">
-          <option value="operator">Operator (Evaluator)</option>
-          <option value="red_team">Red Team Participant</option>
-          <option value="blue_team">Blue Team Participant</option>
-          <option value="reviewer">Reviewer (Auditor)</option>
-        </select>
+        <div class="custom-dropdown" id="role-dropdown">
+          <button type="button" class="dropdown-trigger" id="role-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false" title="Switch platform persona">
+            <span class="role-indicator role-indicator-operator"></span>
+            <span class="dropdown-selected-text" id="role-selected-text">Operator (Evaluator)</span>
+            <svg class="dropdown-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu" id="role-dropdown-menu" role="listbox">
+            <div class="dropdown-item selected" data-value="operator" role="option" tabindex="0">
+              <span class="role-indicator role-indicator-operator"></span>
+              <div class="dropdown-item-content">
+                <span class="item-title">Operator (Evaluator)</span>
+                <span class="item-subtitle">Full evaluation & benchmark control</span>
+              </div>
+              <svg class="item-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="dropdown-item" data-value="red_team" role="option" tabindex="0">
+              <span class="role-indicator role-indicator-red"></span>
+              <div class="dropdown-item-content">
+                <span class="item-title">Red Team Participant</span>
+                <span class="item-subtitle">Adversarial payload crafted probes</span>
+              </div>
+              <svg class="item-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="dropdown-item" data-value="blue_team" role="option" tabindex="0">
+              <span class="role-indicator role-indicator-blue"></span>
+              <div class="dropdown-item-content">
+                <span class="item-title">Blue Team Participant</span>
+                <span class="item-subtitle">Guardrail shields & boundary defense</span>
+              </div>
+              <svg class="item-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="dropdown-item" data-value="reviewer" role="option" tabindex="0">
+              <span class="role-indicator role-indicator-reviewer"></span>
+              <div class="dropdown-item-content">
+                <span class="item-title">Reviewer (Auditor)</span>
+                <span class="item-subtitle">Cryptographic chain verification & compliance</span>
+              </div>
+              <svg class="item-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+          <!-- Hidden native select for 100% backward compatibility with existing tests & scripts -->
+          <select id="role-selector" style="display: none;" title="Switch platform persona">
+            <option value="operator">Operator (Evaluator)</option>
+            <option value="red_team">Red Team Participant</option>
+            <option value="blue_team">Blue Team Participant</option>
+            <option value="reviewer">Reviewer (Auditor)</option>
+          </select>
+        </div>
       </div>
 
       <!-- Proof Mode Indicator Pill -->
@@ -1130,17 +1173,17 @@
           style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.25rem;">&times;</button>
       </div>
 
-      <div style="display: flex; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 240px;">
-          <label class="form-label">Baseline Run</label>
-          <select id="compare-baseline-select" class="form-select"></select>
+      <div style="display: flex; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap; align-items: flex-end;">
+        <div class="form-group" style="flex: 1 1 240px; min-width: 0; margin-bottom: 0;">
+          <label class="form-label" for="compare-baseline-select">Baseline Run</label>
+          <select id="compare-baseline-select" class="form-select" style="width: 100%; max-width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"></select>
         </div>
-        <div style="flex: 1; min-width: 240px;">
-          <label class="form-label">Rerun to Compare</label>
-          <select id="compare-rerun-select" class="form-select"></select>
+        <div class="form-group" style="flex: 1 1 240px; min-width: 0; margin-bottom: 0;">
+          <label class="form-label" for="compare-rerun-select">Rerun to Compare</label>
+          <select id="compare-rerun-select" class="form-select" style="width: 100%; max-width: 100%; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"></select>
         </div>
-        <div style="display: flex; align-items: flex-end;">
-          <button id="btn-trigger-compare" class="btn btn-primary">Compare Outcomes</button>
+        <div style="display: flex; align-items: flex-end; margin-bottom: 0;">
+          <button id="btn-trigger-compare" class="btn btn-primary" style="white-space: nowrap; height: 38px;">Compare Outcomes</button>
         </div>
       </div>
 
@@ -1245,7 +1288,7 @@
     </div>
   </div>
 
-  <script src="/static/js/app.js"></script>
+  <script src="/static/js/app.js?v=5.4"></script>
 </body>
 
 </html>
